@@ -78,3 +78,38 @@ Here is JSON Description:
 </li>
 <li><code>success</code>: A boolean indicating whether the request was successful.</li>
 </ul>
+
+Here is a complete list of Persian letters:
+
+```json
+plateLetters = [
+    {"persian": "الف", "english": "alef", "value": 0},
+    {"persian": "ب", "english": "b", "value": 1},
+    {"persian": "ج", "english": "j", "value": 2},
+    {"persian": "ل", "english": "l", "value": 3},
+    {"persian": "م", "english": "m", "value": 4},
+    {"persian": "ن", "english": "n", "value": 5},
+    {"persian": "ق", "english": "q", "value": 6},
+    {"persian": "و", "english": "v", "value": 7},
+    {"persian": "ه", "english": "h", "value": 8},
+    {"persian": "ی", "english": "y", "value": 9},
+    {"persian": "د", "english": "d", "value": 10},
+    {"persian": "س", "english": "s", "value": 11},
+    {"persian": "ص", "english": "sad", "value": 12},
+    {"persian": "معلول", "english": "malol", "value": 13},
+    {"persian": "ت", "english": "t", "value": 14},
+    {"persian": "ط", "english": "ta", "value": 15},
+    {"persian": "ع", "english": "ein", "value": 16},
+    {"persian": "D", "english": "diplomat", "value": 17},
+    {"persian": "S", "english": "siyasi", "value": 18},
+    {"persian": "پ", "english": "p", "value": 19},
+    {"persian": "تشریفات", "english": "tashrifat", "value": 20},
+    {"persian": "ث", "english": "the", "value": 21},
+    {"persian": "ز", "english": "ze", "value": 22},
+    {"persian": "ش", "english": "she", "value": 23},
+    {"persian": "ف", "english": "fe", "value": 24},
+    {"persian": "ک", "english": "kaf", "value": 25},
+    {"persian": "گ", "english": "gaf", "value": 26},
+    {"persian": "#", "english": "#", "value": 27}
+]
+```
