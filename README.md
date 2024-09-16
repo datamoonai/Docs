@@ -82,7 +82,7 @@ Here is JSON Description:
 Here is a complete list of Persian letters:
 
 ```json
-plateLetters = [
+[
     {"persian": "الف", "english": "alef", "value": 0},
     {"persian": "ب", "english": "b", "value": 1},
     {"persian": "ج", "english": "j", "value": 2},
