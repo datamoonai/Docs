@@ -390,12 +390,39 @@ paths:
 
                     example: true
                     description: return id ,...
-  /parking/get_final_id:
 
+  /parking/change_group:
     post:
-
+      summary: changes group id of a parking log
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: id of a parking log
+                  example: 1
+                group_id:
+                  type: integer
+                  description: new group id
+                  example: 2
+      responses:
+        '200':
+          description: result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: boolean
+                    example: true
+                    description: result of the function true or false
+  /parking/get_final_id:
+    post:
       summary: get_final_id
-
       requestBody:
         content:
           application/json:
@@ -454,7 +481,7 @@ paths:
     get:
 
       summary: change_status
-    
+
 
       responses:
         '200':
@@ -2334,6 +2361,39 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Plate'
+
+  /memberPlates/search:
+    get:
+      tags:
+        - MemberPlates
+      summary: Filters a list of member plates by status [0,1] and plate_type [0,1,2,3...]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status_list:
+                  type: array
+                  items:
+                    type: integer
+                  example: [0, 1]
+                  description: if empty or null returns all status
+                plate_type_list:
+                  type: array
+                  items:
+                    type: integer
+                  example: [ 0, 1, 2 ]
+                  description: if empty or null returns all plate_types
+      responses:
+        '200':
+          description: Member plates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Plate'
   /memberPlates/count:
     post:
       tags:
@@ -3016,6 +3076,14 @@ paths:
                       type: integer
                       description: count plate
                       example: 5
+                    only_with_correct_vision_speed:
+                      type: integer
+                      example: -1
+                      description: -1 all logs, 1 correct vision speed is not null, 0 correct vision speed is null
+                    only_with_vision_speed_log:
+                      type: integer
+                      example: -1
+                      description: -1 all logs, 1 vision speed log is not null, 0 vision speed log is null
                 page:
                   type: integer
                   example: 1
@@ -3374,7 +3442,234 @@ paths:
                     example:
                       1
                     description: Number of rows with unknown status
+  /reportsPlate/vehicle_models:
+    get:
+      tags:
+        - Vehicle Models
+      summary: Search vehicle models
+      description: Returns top 10 vehicle models matching the search query (checks both English and Persian names)
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: query
+          in: query
+          description: Search term for vehicle models
+          required: true
+          schema:
+            type: string
+            example: "infiniti"
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          description: Vehicle model ID
+                          example: "0"
+                        english:
+                          type: string
+                          description: English name of the model
+                          example: "vmmrdb_light_infiniti-m45-2004_back"
+                        persian:
+                          type: string
+                          description: Persian name of the model
+                          example: "سبک اینفینیتی ام 45 2004 عقب"
+                        score:
+                          type: number
+                          description: Match score (higher is better)
+                          example: 2
+        '400':
+          description: Bad request - missing query parameter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: "Query parameter 'query' is required"
+        '401':
+          description: Unauthorized - missing or invalid access token
+        '403':
+          description: Forbidden - insufficient permissions
+  /reportsPlate/vehicle_model:
+    get:
+      tags:
+        - Vehicle Models
+      summary: Get vehicle model by ID
+      description: Returns English and Persian names for a specific vehicle model ID
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: value
+          in: query
+          description: Vehicle model ID to look up
+          required: true
+          schema:
+            type: string
+            example: "0"
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: object
+                    properties:
+                      result:
+                        type: boolean
+                        example: true
+                      data:
+                        type: object
+                        properties:
+                          english:
+                            type: string
+                            example: "vmmrdb_light_infiniti-m45-2004_back"
+                          persian:
+                            type: string
+                            example: "سبک اینفینیتی ام 45 2004 عقب"
+                  - type: object
+                    properties:
+                      result:
+                        type: boolean
+                        example: false
 
+  /reportsPlate/get_vision_speed_calibration_params:
+    post:
+      tags:
+        - Vision Speed Calibration
+      summary: Returns calibration parameters
+      description: Calibrates camera parameters
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                camera_id:
+                  type: integer
+                  description: ID of the camera to calibrate
+                  example: 1
+                ignore_list:
+                  type: array
+                  description: List of IDs to add to the ignore list
+                  items:
+                    type: integer
+                  example: [ 134, 323 ]
+              required:
+                - camera_id
+                - ignore_list
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: boolean
+                    example: true
+                  errors:
+                    type: array
+                    description: List of error objects with log IDs and error codes
+                    items:
+                      type: object
+                      properties:
+                        log_id:
+                          type: string
+                          example: "123"
+                        errors:
+                          type: array
+                          items:
+                            type: integer
+                          minItems: 5
+                          maxItems: 5
+                          example: [ 1, 2, 3, 4, 5 ]
+                  p2m:
+                    type: array
+                    description: Pixel to meter mapping array (always length 4)
+                    items:
+                      type: integer
+                    minItems: 4
+                    maxItems: 4
+                    example: [ 1, 2, 3, 4 ]
+                  m2p:
+                    type: array
+                    description: Meter to Pixel mapping array (always length 4)
+                    items:
+                      type: integer
+                    minItems: 4
+                    maxItems: 4
+                    example: [ 1, 2, 3, 4 ]
+        '400':
+          description: Invalid input parameters
+        '401':
+          description: Unauthorized
+
+  /reportsPlate/correct_vision_speed:
+    put:
+      tags:
+        - Vision Speed Calibration
+      summary: Update correct vision speed
+      description: Update the correct_vision_speed value for a specific plate log entry
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: ID of the plate log entry to update
+                  example: 123
+                correct_vision_speed:
+                  type: number
+                  format: float
+                  description: The corrected vision speed value
+                  example: 85.5
+              required:
+                - id
+                - correct_vision_speed
+      responses:
+        '200':
+          description: Successfully updated vision speed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: boolean
+                    example: true
+        '400':
+          description: Invalid input parameters
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal server error
   /plateFace/:
     post:
       tags:
