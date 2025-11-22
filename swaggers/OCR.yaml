@@ -1,0 +1,575 @@
+openapi: 3.0.1
+info:
+  title: Detection Engine APIS
+  description: API description in Markdown.
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:8002'
+  - url: 'http://localhost:9002'
+paths:
+  /ocr_camera:
+    post:
+      tags:
+        - OCR Camera
+      summary: Capture and process image for OCR
+      description: |
+        Captures one or multiple images from a camera, processes them through OCR,
+        and returns license plate detection results.
+        The endpoint waits for image capture and processes each image sequentially.
+      parameters:
+        - in: query
+          name: cam_id
+          required: true
+          schema:
+            type: integer
+          description: ID of the camera to capture from
+          example: 1
+        - in: query
+          name: count
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: Number of images to capture and process
+          example: 1
+      responses:
+        '200':
+          description: Successful OCR processing
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  result:
+                    type: object
+                    properties:
+                      plates:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            box:
+                              type: object
+                              properties:
+                                bottom:
+                                  type: integer
+                                  example: 387
+                                left:
+                                  type: integer
+                                  example: 569
+                                right:
+                                  type: integer
+                                  example: 761
+                                top:
+                                  type: integer
+                                  example: 318
+                            legible:
+                              type: boolean
+                              example: true
+                            ocr_accuracy:
+                              type: number
+                              format: float
+                              example: 0.7983546778559685
+                            plate_confidence:
+                              type: number
+                              format: float
+                              example: 0.9851707220077515
+                            plate_text:
+                              type: object
+                              properties:
+                                city_code:
+                                  type: string
+                                  example: "33"
+                                first_part:
+                                  type: string
+                                  example: "25"
+                                letter:
+                                  type: string
+                                  example: "ein"
+                                persian_letter:
+                                  type: string
+                                  example: "ع"
+                                plate:
+                                  type: string
+                                  example: "25ein12933"
+                                second_part:
+                                  type: string
+                                  example: "129"
+                            plate_type:
+                              type: string
+                              example: "iran"
+                      selected:
+                        type: string
+                        nullable: true
+                        example: null
+                      time:
+                        type: number
+                        format: float
+                        example: 0.14780855178833008
+        '400':
+          description: Error in processing
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error_code:
+                    type: integer
+                    description: |
+                      -1: Camera is None
+                      -2: Grab image timeout
+                      -3: Cannot connect to HTTP server
+                      -4: Error in HTTP server
+                    example: -1
+                  error_message:
+                    type: string
+                    example: "Camera is None"
+                  error_text:
+                    type: string
+                    description: Additional error details (only for some error codes)
+                    example: "500 Internal Server Error"
+                  http_response:
+                    type: object
+                    description: Response from HTTP server (only for error code -4)
+  /set_process_frame_status:
+    post:
+      tags:
+        - Process Frames
+      summary: Set frame processing status
+      description: |
+        Enable or disable frame processing for a camera with optional time limit.
+        When process_time_sec is 0, the status change is permanent until changed again.
+      parameters:
+        - in: query
+          name: cam_id
+          required: true
+          schema:
+            type: integer
+          description: ID of the camera to configure
+          example: 1
+        - in: query
+          name: status
+          required: true
+          schema:
+            type: string
+          examples:
+            true_values:
+              summary: True values
+              value: "true"
+            false_values:
+              summary: False values
+              value: "false"
+          description: |
+            Processing status - accepts 'true', '1', 'yes' for true (case-insensitive),
+            any other value will be treated as false
+        - in: query
+          name: process_time_sec
+          required: true
+          schema:
+            type: integer
+          description: |
+            Time in seconds to maintain the status. 
+            Set to 0 for permanent status change.
+          example: 60
+      responses:
+        '200':
+          description: Successfully updated processing status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '400':
+          description: Error updating processing status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error_code:
+                    type: integer
+                    example: -1
+                  error_message:
+                    type: string
+                    example: "Camera is None"
+  /get_process_frame_status:
+    get:
+      tags:
+        - Process Frames
+      summary: Get current frame processing status (GET alternative)
+      description: Same functionality as POST method
+      parameters:
+        - in: query
+          name: cam_id
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Successfully retrieved processing status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  status:
+                    type: object
+                    properties:
+                      status:
+                        type: boolean
+                        example: true
+                      stop_time_sec:
+                        type: number
+                        nullable: true
+                        example: 1672531200.123
+        '400':
+          description: Error retrieving processing status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /detect:
+    post:
+      tags:
+        - OCR File
+      summary: Detect license plates in an image
+      description: |
+        Processes an image through OCR and returns detected license plates with bounding boxes,
+        confidence scores, and parsed plate information.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file_img:
+                  type: string
+                  format: binary
+                  description: Image file to process for license plate detection
+            encoding:
+              file_img:
+                contentType: image/jpeg, image/png, image/bmp
+      responses:
+        '200':
+          description: Successful detection
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  result:
+                    type: object
+                    properties:
+                      plates:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/DetectedPlate'
+                      selected:
+                        type: string
+                        nullable: true
+                        description: Selected plate (if any)
+                        example: null
+                      time:
+                        type: number
+                        format: float
+                        description: Processing time in seconds
+                        example: 0.14780855178833008
+        '400':
+          description: Error in detection processing
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error_code:
+                    type: integer
+                    description: Error code from detection service
+                  error_message:
+                    type: string
+                    description: Error description from detection service
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error_code:
+                    type: integer
+                    example: -1
+                  error_message:
+                    type: string
+                    example: "Internal server error"
+  /ocr_plate_crop:
+    post:
+      tags:
+        - OCR File
+      summary: Detect license plates in an image
+      description: |
+        Processes an image through OCR and returns detected license plates with bounding boxes,
+        confidence scores, and parsed plate information.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file_img:
+                  type: string
+                  format: binary
+                  description: Image file to process for license plate detection
+            encoding:
+              file_img:
+                contentType: image/jpeg, image/png, image/bmp
+      responses:
+        '200':
+          description: Successful detection
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  result:
+                    type: object
+                    properties:
+                      plates:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/DetectedPlate'
+                      selected:
+                        type: string
+                        nullable: true
+                        description: Selected plate (if any)
+                        example: null
+                      time:
+                        type: number
+                        format: float
+                        description: Processing time in seconds
+                        example: 0.14780855178833008
+        '400':
+          description: Error in detection processing
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error_code:
+                    type: integer
+                    description: Error code from detection service
+                  error_message:
+                    type: string
+                    description: Error description from detection service
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error_code:
+                    type: integer
+                    example: -1
+                  error_message:
+                    type: string
+                    example: "Internal server error"
+components:
+  schemas:
+    OCRResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        result:
+          $ref: '#/components/schemas/OCRResult'
+
+    OCRResult:
+      type: object
+      properties:
+        plates:
+          type: array
+          items:
+            $ref: '#/components/schemas/LicensePlate'
+        selected:
+          type: string
+          nullable: true
+        time:
+          type: number
+          format: float
+    DetectedPlate:
+      type: object
+      properties:
+        box:
+          $ref: '#/components/schemas/BoundingBox'
+        legible:
+          type: boolean
+          description: Whether the plate is legible
+          example: true
+        ocr_accuracy:
+          type: number
+          format: float
+          description: OCR accuracy score (0-1)
+          example: 0.7983546778559685
+        plate_confidence:
+          type: number
+          format: float
+          description: Overall plate detection confidence (0-1)
+          example: 0.9851707220077515
+        plate_text:
+          $ref: '#/components/schemas/PlateText'
+        plate_type:
+          type: string
+          description: Type of license plate
+          example: "iran"
+
+    DetectionResult:
+      type: object
+      properties:
+        plates:
+          type: array
+          items:
+            $ref: '#/components/schemas/DetectedPlate'
+        selected:
+          type: string
+          nullable: true
+        time:
+          type: number
+          format: float
+    DetectionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        result:
+          $ref: '#/components/schemas/DetectionResult'
+    LicensePlate:
+      type: object
+      properties:
+        box:
+          $ref: '#/components/schemas/BoundingBox'
+        legible:
+          type: boolean
+        ocr_accuracy:
+          type: number
+          format: float
+        plate_confidence:
+          type: number
+          format: float
+        plate_text:
+          $ref: '#/components/schemas/PlateText'
+        plate_type:
+          type: string
+
+    BoundingBox:
+      type: object
+      properties:
+        bottom:
+          type: integer
+        left:
+          type: integer
+        right:
+          type: integer
+        top:
+          type: integer
+
+    PlateText:
+      type: object
+      properties:
+        city_code:
+          type: string
+        first_part:
+          type: string
+        letter:
+          type: string
+        persian_letter:
+          type: string
+        plate:
+          type: string
+        second_part:
+          type: string
+
+    OCRError:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error_code:
+          type: integer
+        error_message:
+          type: string
+        error_text:
+          type: string
+          nullable: true
+        http_response:
+          type: object
+          nullable: true
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error_code:
+          type: integer
+          example: -1
+        error_message:
+          type: string
+          example: "Camera is None"
+
+    ProcessStatus:
+      type: object
+      properties:
+        status:
+          type: boolean
+          description: Current processing status
+        stop_time_sec:
+          type: number
+          nullable: true
+          description: Timestamp when status will auto-revert (null if permanent)
+
+    StatusResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        status:
+          $ref: '#/components/schemas/ProcessStatus'
