@@ -18,27 +18,57 @@ Calling this API will return a json. Here is a sample json:
         "plates": [
             {
                 "box": {
-                    "bottom": 387,
-                    "left": 569,
-                    "right": 761,
-                    "top": 318
+                    "bottom": 443,
+                    "left": 325,
+                    "right": 498,
+                    "top": 392
                 },
                 "legible": true,
-                "ocr_accuracy": 0.7983546778559685,
-                "plate_confidence": 0.9851707220077515,
+                "ocr_accuracy": 0.9970852807164192,
+                "plate_confidence": 0.9991962909698486,
                 "plate_text": {
-                    "city_code": "33",
-                    "first_part": "25",
-                    "letter": "ein",
-                    "persian_letter": "ع",
-                    "plate": "25ein12933",
-                    "second_part": "129"
+                    "city_code": "11",
+                    "first_part": "66",
+                    "letter": "q",
+                    "persian_letter": "ق",
+                    "plate": "66q66611",
+                    "second_part": "666"
                 },
-                "plate_type": "iran"
+                "plate_type": "iran",
+                "vehicle_class": [
+                    36442,
+                    "light-mercedes-benz-clk-class-coupe",
+                    0.657515287399292
+                ],
+                "vehicle_class_named": {
+                    "class_id": 36442,
+                    "confidence": 0.657515287399292,
+                    "label": "light-mercedes-benz-clk-class-coupe"
+                },
+                "vehicle_color": [
+                    1,
+                    "black",
+                    0.9016493558883667
+                ],
+                "vehicle_color_named": {
+                    "class_id": 1,
+                    "confidence": 0.9016493558883667,
+                    "label": "black"
+                },
+                "vehicle_type": [
+                    1,
+                    "sangin",
+                    0.9778803586959839
+                ],
+                "vehicle_type_named": {
+                    "class_id": 1,
+                    "confidence": 0.9778803586959839,
+                    "label": "sangin"
+                }
             }
         ],
         "selected": null,
-        "time": 0.14780855178833008
+        "time": 0.1793379783630371
     },
     "success": true
 }
@@ -113,3 +143,118 @@ Here is a complete list of Persian letters:
     {"persian": "#", "english": "#", "value": 27}
 ]
 ```
+
+Here is a complete list of vehicle colors:
+
+```json
+  [
+    {
+      "persian": "بژ",
+      "arabic": "بيج",
+      "english": "beige",
+      "value": 0
+    },
+    {
+      "persian": "مشکی",
+      "arabic": "أسود",
+      "english": "black",
+      "value": 1
+    },
+    {
+      "persian": "آبی",
+      "arabic": "أزرق",
+      "english": "blue",
+      "value": 2
+    },
+    {
+      "persian": "قهوه ای",
+      "arabic": "بني",
+      "english": "brown",
+      "value": 3
+    },
+    {
+      "persian": "طلایی",
+      "arabic": "ذهبي",
+      "english": "gold",
+      "value": 4
+    },
+    {
+      "persian": "سبز",
+      "arabic": "أخضر",
+      "english": "green",
+      "value": 5
+    },
+    {
+      "persian": "خاکستری",
+      "arabic": "رمادي",
+      "english": "grey",
+      "value": 6
+    },
+    {
+      "persian": "نارنجی",
+      "arabic": "برتقالي",
+      "english": "orange",
+      "value": 7
+    },
+    {
+      "persian": "صورتی",
+      "arabic": "وردي",
+      "english": "pink",
+      "value": 8
+    },
+    {
+      "persian": "بنفش",
+      "arabic": "بنفسجي",
+      "english": "purple",
+      "value": 9
+    },
+    {
+      "persian": "قرمز",
+      "arabic": "أحمر",
+      "english": "red",
+      "value": 10
+    },
+    {
+      "persian": "نقره ای",
+      "arabic": "فضي",
+      "english": "silver",
+      "value": 11
+    },
+    {
+      "persian": "برنز",
+      "arabic": "برنز",
+      "english": "tan",
+      "value": 12
+    },
+    {
+      "persian": "سفید",
+      "arabic": "أبيض",
+      "english": "white",
+      "value": 13
+    },
+    {
+      "persian": "زرد",
+      "arabic": "أصفر",
+      "english": "yellow",
+      "value": 14
+    }
+  ]
+```
+
+Here is a complete list of vehicle type (sabok: light, sangin: heavy):
+```json
+  [
+    {
+      "persian": "سبک",
+      "english": "sabok",
+      "value": 0
+    },
+    {
+      "persian": "سنگین",
+      "english": "sangin",
+      "value": 1
+    }
+  ]
+```
+
+Vehicle class list is dynamic and can be changed over time and class_id is not fixed. So you have to use label as the unique key for the class name. The complete list of current vehicle classes and their Persian translation can be found in [Vehcile Names](vehicle_names.csv). 
