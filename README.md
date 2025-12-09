@@ -109,6 +109,21 @@ Here is JSON Description:
 <li><code>success</code>: A boolean indicating whether the request was successful.</li>
 </ul>
 
+Here is a complete list of plate types and their sample plate:
+
+```json
+{
+    "iran": ["12alef12345"],
+    "iraq": ["0,123456,soleymanie,alaraq"],
+    "europe": ["AB22CDE", "12BB12CC"],
+    "freetrade5": ["12345"],
+    "freetrade7": ["1234567"],
+    "container": ["ABCD,123456,7"],
+    "afghan": ["PRN,1234,H"],
+    "motor": ["12345678"]
+}
+```
+
 Here is a complete list of Persian letters:
 
 ```json
