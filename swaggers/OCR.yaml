@@ -55,6 +55,19 @@ paths:
                   result:
                     type: object
                     properties:
+                      frame_base64:
+                        type: string
+                        description: base64 image of the frame
+                        example: /9...
+                      orig_frame_size:
+                        type: object
+                        properties:
+                          width:
+                            type: integer
+                            example: 1920
+                          height:
+                            type: integer
+                            example: 1080
                       plates:
                         type: array
                         items:
@@ -75,6 +88,10 @@ paths:
                                 top:
                                   type: integer
                                   example: 318
+                            crop_base64:
+                              type: string
+                              description: base64 image of the plate
+                              example: /9...
                             legible:
                               type: boolean
                               example: true
